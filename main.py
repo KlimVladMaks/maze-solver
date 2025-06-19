@@ -3,9 +3,9 @@ from find_shortest_path import find_shortest_path
 
 pygame.init()
 
-CELL_SIZE = 20
-ROWS = 35
-COLS = 35
+CELL_SIZE = 10
+ROWS = 60
+COLS = 120
 WIDTH = COLS * CELL_SIZE
 HEIGHT = ROWS * CELL_SIZE
 
@@ -23,32 +23,61 @@ running = True
 drawing_walls = True
 number_of_key_points = 0
 
+# Для отслеживания положения мыши
+left_mouse_pressed = False
+last_cell = None  # Последняя изменённая клетка, чтобы не повторяться
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-            break
-    
+
         elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:
-                    if drawing_walls:
-                        print("Переход к выбору входа/выхода")
-                        drawing_walls = False
+            if event.key == pygame.K_RETURN:
+                if drawing_walls:
+                    print("Переход к выбору входа/выхода")
+                    drawing_walls = False
+                else:
+                    print("Ввод завершён")
+                    answer = find_shortest_path(grid)
+                    if grid is not None:
+                        grid = answer
                     else:
-                        print("Ввод завершён")
-                        grid = find_shortest_path(grid)
+                        print("Решения не найдено")
         
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
+            if event.button == 1:  # Левая кнопка мыши нажата
+                left_mouse_pressed = True
                 pos = pygame.mouse.get_pos()
                 x = pos[0] // CELL_SIZE
                 y = pos[1] // CELL_SIZE
                 if drawing_walls:
                     grid[y][x] = 1
+                    last_cell = (x, y)
                 elif number_of_key_points < 2:
                     grid[y][x] = 2
                     number_of_key_points += 1
-    
+                    last_cell = (x, y)
+
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if event.button == 1:  # Левая кнопка отпущена
+                left_mouse_pressed = False
+                last_cell = None
+
+    # Если зажата левая кнопка мыши
+    if left_mouse_pressed:
+        pos = pygame.mouse.get_pos()
+        x = pos[0] // CELL_SIZE
+        y = pos[1] // CELL_SIZE
+        # Проверяем, что координаты в пределах сетки
+        if 0 <= x < COLS and 0 <= y < ROWS:
+            # Избегаем повторной закраски одной и той же клетки
+            if (x, y) != last_cell:
+                if drawing_walls:
+                    if grid[y][x] != 2:  # Не затираем точки
+                        grid[y][x] = 1
+                last_cell = (x, y)
+
     screen.fill(BLACK)
     for y in range(ROWS):
         for x in range(COLS):
