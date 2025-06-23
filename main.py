@@ -1,8 +1,7 @@
 import pygame
 from dataclasses import dataclass
+from enum import Enum, auto
 from find_shortest_path import find_shortest_path
-
-pygame.init()
 
 @dataclass
 class Config:
@@ -13,9 +12,6 @@ class Config:
     HEIGHT: int = ROWS * CELL_SIZE
 config = Config()
 
-screen = pygame.display.set_mode((config.WIDTH, config.HEIGHT))
-pygame.display.set_caption("Решатель лабиринтов")
-
 @dataclass
 class Colors:
     BLACK = pygame.Color(0, 0, 0)
@@ -25,16 +21,25 @@ class Colors:
     GREEN = pygame.Color(0, 255, 0)
 colors = Colors()
 
+pygame.init()
+
+screen = pygame.display.set_mode((config.WIDTH, config.HEIGHT))
+pygame.display.set_caption("Решатель лабиринтов")
+
 grid = [[0 for _ in range(config.COLS)] for _ in range(config.ROWS)]
 
-running = True
-drawing_walls = True
-number_of_key_points = 0
+class AppState(Enum):
+    DRAWING_WALLS = auto()
+    PLACING_POINTS = auto()
+    SOLVING = auto()
 
-# Для отслеживания положения мыши
+grid = [[0 for _ in range(config.COLS)] for _ in range(config.ROWS)]
+state = AppState.DRAWING_WALLS
 left_mouse_pressed = False
-last_cell = None  # Последняя изменённая клетка, чтобы не повторяться
+last_cell = None
+key_points_placed = 0
 
+running = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -42,16 +47,15 @@ while running:
 
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RETURN:
-                if drawing_walls:
+                if state == AppState.DRAWING_WALLS:
                     print("Переход к выбору входа/выхода")
-                    drawing_walls = False
-                else:
+                    state = AppState.PLACING_POINTS
+                elif state == AppState.PLACING_POINTS:
                     print("Ввод завершён")
+                    state = AppState.SOLVING
                     answer = find_shortest_path(grid)
-                    if grid is not None:
+                    if answer:
                         grid = answer
-                    else:
-                        print("Решения не найдено")
         
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Левая кнопка мыши нажата
@@ -59,13 +63,14 @@ while running:
                 pos = pygame.mouse.get_pos()
                 x = pos[0] // config.CELL_SIZE
                 y = pos[1] // config.CELL_SIZE
-                if drawing_walls:
+                if state == AppState.DRAWING_WALLS:
                     grid[y][x] = 1
                     last_cell = (x, y)
-                elif number_of_key_points < 2:
-                    grid[y][x] = 2
-                    number_of_key_points += 1
-                    last_cell = (x, y)
+                elif state == AppState.PLACING_POINTS:
+                    if key_points_placed < 2:
+                        grid[y][x] = 2
+                        key_points_placed += 1
+                        last_cell = (x, y)
 
         elif event.type == pygame.MOUSEBUTTONUP:
             if event.button == 1:  # Левая кнопка отпущена
@@ -81,7 +86,7 @@ while running:
         if 0 <= x < config.COLS and 0 <= y < config.ROWS:
             # Избегаем повторной закраски одной и той же клетки
             if (x, y) != last_cell:
-                if drawing_walls:
+                if state == AppState.DRAWING_WALLS:
                     if grid[y][x] != 2:  # Не затираем точки
                         grid[y][x] = 1
                 last_cell = (x, y)
