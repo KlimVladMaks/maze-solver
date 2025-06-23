@@ -11,17 +11,19 @@ class Config:
     COLS: int = 120
     WIDTH: int = COLS * CELL_SIZE
     HEIGHT: int = ROWS * CELL_SIZE
-
 config = Config()
 
 screen = pygame.display.set_mode((config.WIDTH, config.HEIGHT))
 pygame.display.set_caption("Решатель лабиринтов")
 
-BLACK = (0, 0, 0)
-GRAY = (100, 100, 100)
-LIGHT_GREY = (50, 50, 50)
-YELLOW = (255, 255, 0)
-GREEN = (0, 255, 0)
+@dataclass
+class Colors:
+    BLACK = pygame.Color(0, 0, 0)
+    GRAY = pygame.Color(100, 100, 100)
+    LIGHT_GREY = pygame.Color(50, 50, 50)
+    YELLOW = pygame.Color(255, 255, 0)
+    GREEN = pygame.Color(0, 255, 0)
+colors = Colors()
 
 grid = [[0 for _ in range(config.COLS)] for _ in range(config.ROWS)]
 
@@ -84,18 +86,20 @@ while running:
                         grid[y][x] = 1
                 last_cell = (x, y)
 
-    screen.fill(BLACK)
+    screen.fill(colors.BLACK)
     for y in range(config.ROWS):
         for x in range(config.COLS):
-            color = BLACK
+            color = colors.BLACK
             if grid[y][x] == 1:
-                color = GRAY
+                color = colors.GRAY
             elif grid[y][x] == 2:
-                color = YELLOW
+                color = colors.YELLOW
             elif grid[y][x] == 3:
-                color = GREEN
-            pygame.draw.rect(screen, color, (x * config.CELL_SIZE, y * config.CELL_SIZE, config.CELL_SIZE, config.CELL_SIZE))
-            pygame.draw.rect(screen, LIGHT_GREY, (x * config.CELL_SIZE, y * config.CELL_SIZE, config.CELL_SIZE, config.CELL_SIZE), 1)
+                color = colors.GREEN
+            pygame.draw.rect(screen, color,
+                             (x * config.CELL_SIZE, y * config.CELL_SIZE, config.CELL_SIZE, config.CELL_SIZE))
+            pygame.draw.rect(screen, colors.LIGHT_GREY,
+                             (x * config.CELL_SIZE, y * config.CELL_SIZE, config.CELL_SIZE, config.CELL_SIZE), 1)
     
     pygame.display.flip()
 
