@@ -14,6 +14,7 @@ pygame.display.set_caption("Решатель лабиринтов")
 
 BLACK = (0, 0, 0)
 GRAY = (100, 100, 100)
+LIGHT_GREY = (50, 50, 50)
 YELLOW = (255, 255, 0)
 GREEN = (0, 255, 0)
 
@@ -89,7 +90,7 @@ while running:
             elif grid[y][x] == 3:
                 color = GREEN
             pygame.draw.rect(screen, color, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
-            pygame.draw.rect(screen, (50, 50, 50), (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE), 1)
+            pygame.draw.rect(screen, LIGHT_GREY, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE), 1)
     
     pygame.display.flip()
 
