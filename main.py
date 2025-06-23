@@ -1,15 +1,20 @@
 import pygame
+from dataclasses import dataclass
 from find_shortest_path import find_shortest_path
 
 pygame.init()
 
-CELL_SIZE = 10
-ROWS = 60
-COLS = 120
-WIDTH = COLS * CELL_SIZE
-HEIGHT = ROWS * CELL_SIZE
+@dataclass
+class Config:
+    CELL_SIZE: int = 10
+    ROWS: int = 60
+    COLS: int = 120
+    WIDTH: int = COLS * CELL_SIZE
+    HEIGHT: int = ROWS * CELL_SIZE
 
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+config = Config()
+
+screen = pygame.display.set_mode((config.WIDTH, config.HEIGHT))
 pygame.display.set_caption("Решатель лабиринтов")
 
 BLACK = (0, 0, 0)
@@ -18,7 +23,7 @@ LIGHT_GREY = (50, 50, 50)
 YELLOW = (255, 255, 0)
 GREEN = (0, 255, 0)
 
-grid = [[0 for _ in range(COLS)] for _ in range(ROWS)]
+grid = [[0 for _ in range(config.COLS)] for _ in range(config.ROWS)]
 
 running = True
 drawing_walls = True
@@ -50,8 +55,8 @@ while running:
             if event.button == 1:  # Левая кнопка мыши нажата
                 left_mouse_pressed = True
                 pos = pygame.mouse.get_pos()
-                x = pos[0] // CELL_SIZE
-                y = pos[1] // CELL_SIZE
+                x = pos[0] // config.CELL_SIZE
+                y = pos[1] // config.CELL_SIZE
                 if drawing_walls:
                     grid[y][x] = 1
                     last_cell = (x, y)
@@ -68,10 +73,10 @@ while running:
     # Если зажата левая кнопка мыши
     if left_mouse_pressed:
         pos = pygame.mouse.get_pos()
-        x = pos[0] // CELL_SIZE
-        y = pos[1] // CELL_SIZE
+        x = pos[0] // config.CELL_SIZE
+        y = pos[1] // config.CELL_SIZE
         # Проверяем, что координаты в пределах сетки
-        if 0 <= x < COLS and 0 <= y < ROWS:
+        if 0 <= x < config.COLS and 0 <= y < config.ROWS:
             # Избегаем повторной закраски одной и той же клетки
             if (x, y) != last_cell:
                 if drawing_walls:
@@ -80,8 +85,8 @@ while running:
                 last_cell = (x, y)
 
     screen.fill(BLACK)
-    for y in range(ROWS):
-        for x in range(COLS):
+    for y in range(config.ROWS):
+        for x in range(config.COLS):
             color = BLACK
             if grid[y][x] == 1:
                 color = GRAY
@@ -89,8 +94,8 @@ while running:
                 color = YELLOW
             elif grid[y][x] == 3:
                 color = GREEN
-            pygame.draw.rect(screen, color, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
-            pygame.draw.rect(screen, LIGHT_GREY, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE), 1)
+            pygame.draw.rect(screen, color, (x * config.CELL_SIZE, y * config.CELL_SIZE, config.CELL_SIZE, config.CELL_SIZE))
+            pygame.draw.rect(screen, LIGHT_GREY, (x * config.CELL_SIZE, y * config.CELL_SIZE, config.CELL_SIZE, config.CELL_SIZE), 1)
     
     pygame.display.flip()
 
