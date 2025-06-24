@@ -6,6 +6,11 @@ class AppState(Enum):
     PLACING_POINTS = auto()
     SOLVING = auto()
 
+class MouseState(Enum):
+    LEFT_BUTTON_PRESSED = auto()
+    RIGHT_BUTTON_PRESSED = auto()
+    NOT_PRESSED = auto()
+
 class Colors:
     BLACK = pygame.Color(0, 0, 0)
     GRAY = pygame.Color(100, 100, 100)

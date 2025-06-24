@@ -1,20 +1,20 @@
 import pygame
-from dataclasses import dataclass
-from enum import Enum, auto
 from find_shortest_path import find_shortest_path
 from config import config
-from constants import AppState, Colors
+from constants import AppState, MouseState, Colors
 from draw_cell import draw_cell
+
 
 class MazeSolverApp:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((config.WIDTH, config.HEIGHT))
         pygame.display.set_caption("Решатель лабиринтов")
-        
-        self.grid = [[0 for _ in range(config.COLS)] for _ in range(config.ROWS)]
-        self.state = AppState.DRAWING_WALLS
-        self.left_mouse_pressed = False
+
+        self.grid = [[0 for _ in range(config.COLS)]
+                     for _ in range(config.ROWS)]
+        self.app_state = AppState.DRAWING_WALLS
+        self.mouse_state = MouseState.NOT_PRESSED
         self.last_cell = None
         self.key_points_placed = 0
         self.dirty_rects = []
@@ -37,12 +37,12 @@ class MazeSolverApp:
     
     def handle_keydown(self, event):
         if event.key == pygame.K_RETURN:
-            if self.state == AppState.DRAWING_WALLS:
+            if self.app_state == AppState.DRAWING_WALLS:
                 print("Переход к выбору входа/выхода")
-                self.state = AppState.PLACING_POINTS
-            elif self.state == AppState.PLACING_POINTS:
+                self.app_state = AppState.PLACING_POINTS
+            elif self.app_state == AppState.PLACING_POINTS:
                 print("Ввод завершён")
-                self.state = AppState.SOLVING
+                self.app_state = AppState.SOLVING
                 answer = find_shortest_path(self.grid)
                 if answer:
                     self.grid = answer
@@ -50,12 +50,12 @@ class MazeSolverApp:
     
     def handle_mousebuttondown(self, event):
         if event.button == 1:
-            self.left_mouse_pressed = True
+            self.mouse_state = MouseState.LEFT_BUTTON_PRESSED
             x, y = self.get_cell_coords(pygame.mouse.get_pos())
             
-            if self.state == AppState.DRAWING_WALLS:
+            if self.app_state == AppState.DRAWING_WALLS:
                 self.set_cell_value(x, y, 1)
-            elif self.state == AppState.PLACING_POINTS and self.key_points_placed < 2:
+            elif self.app_state == AppState.PLACING_POINTS and self.key_points_placed < 2:
                 self.set_cell_value(x, y, 2)
                 self.key_points_placed += 1
             
@@ -63,14 +63,14 @@ class MazeSolverApp:
     
     def handle_mousebuttonup(self, event):
         if event.button == 1:
-            self.left_mouse_pressed = False
+            self.mouse_state = MouseState.NOT_PRESSED
             self.last_cell = None
     
     def handle_mouse_drag(self):
-        if self.left_mouse_pressed:
+        if self.mouse_state == MouseState.LEFT_BUTTON_PRESSED:
             x, y = self.get_cell_coords(pygame.mouse.get_pos())
             if 0 <= x < config.COLS and 0 <= y < config.ROWS and (x, y) != self.last_cell:
-                if self.state == AppState.DRAWING_WALLS and self.grid[y][x] != 2:
+                if self.app_state == AppState.DRAWING_WALLS and self.grid[y][x] != 2:
                     self.set_cell_value(x, y, 1)
                 self.last_cell = (x, y)
     
