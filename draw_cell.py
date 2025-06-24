@@ -19,4 +19,3 @@ def draw_cell(surface, grid, x, y):
     
     pygame.draw.rect(surface, color_map[grid[y][x]], rect)
     pygame.draw.rect(surface, Colors.LIGHT_GREY, rect, 1)
-    return rect

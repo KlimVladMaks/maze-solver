@@ -17,8 +17,6 @@ class MazeSolverApp:
         self.mouse_state = MouseState.NOT_PRESSED
         self.last_cell = None
         self.key_points_placed = 0
-        self.dirty_rects = []
-        self.full_redraw = True
         self.clock = pygame.time.Clock()
         self.running = True
     
@@ -54,9 +52,9 @@ class MazeSolverApp:
             x, y = self.get_cell_coords(pygame.mouse.get_pos())
             
             if self.app_state == AppState.DRAWING_WALLS:
-                self.set_cell_value(x, y, 1)
+                self.grid[y][x] = 1
             elif self.app_state == AppState.PLACING_POINTS and self.key_points_placed < 2:
-                self.set_cell_value(x, y, 2)
+                self.grid[y][x] = 2
                 self.key_points_placed += 1
             
             self.last_cell = (x, y)
@@ -71,37 +69,18 @@ class MazeSolverApp:
             x, y = self.get_cell_coords(pygame.mouse.get_pos())
             if 0 <= x < config.COLS and 0 <= y < config.ROWS and (x, y) != self.last_cell:
                 if self.app_state == AppState.DRAWING_WALLS and self.grid[y][x] != 2:
-                    self.set_cell_value(x, y, 1)
+                    self.grid[y][x] = 1
                 self.last_cell = (x, y)
     
     def get_cell_coords(self, pos):
         return pos[0] // config.CELL_SIZE, pos[1] // config.CELL_SIZE
     
-    def set_cell_value(self, x, y, value):
-        self.grid[y][x] = value
-        self.dirty_rects.append(pygame.Rect(
-            x * config.CELL_SIZE,
-            y * config.CELL_SIZE,
-            config.CELL_SIZE,
-            config.CELL_SIZE
-        ))
-    
     def render(self):
-        if self.full_redraw:
-            self.screen.fill(Colors.BLACK)
-            self.dirty_rects = []
-            for y in range(config.ROWS):
-                for x in range(config.COLS):
-                    self.dirty_rects.append(draw_cell(self.screen, self.grid, x, y))
-            self.full_redraw = False
-            pygame.display.flip()
-        else:
-            for rect in self.dirty_rects:
-                x = rect.x // config.CELL_SIZE
-                y = rect.y // config.CELL_SIZE
+        self.screen.fill(Colors.BLACK)
+        for y in range(config.ROWS):
+            for x in range(config.COLS):
                 draw_cell(self.screen, self.grid, x, y)
-            pygame.display.update(self.dirty_rects)
-            self.dirty_rects = []
+        pygame.display.flip()
     
     def run(self):
         while self.running:
