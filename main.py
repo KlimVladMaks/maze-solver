@@ -54,20 +54,11 @@ class MazeSolverApp:
             
             if self.current_tool == 1:
                 self.grid[y][x] = 1
-            elif self.current_tool == 2:
-                if self.key_points_placed >= 2:
-                    self.remove_previous_points()
+            elif self.current_tool == 2 and self.key_points_placed < 2:
                 self.grid[y][x] = 2
                 self.key_points_placed += 1
             
             self.last_cell = (x, y)
-    
-    def remove_previous_points(self):
-        for y in range(config.ROWS):
-            for x in range(config.COLS):
-                if self.grid[y][x] == 2:
-                    self.grid[y][x] = 0
-        self.key_points_placed = 0
     
     def handle_mousebuttonup(self, event):
         if event.button == 1:
