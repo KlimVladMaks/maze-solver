@@ -13,7 +13,7 @@ class MazeSolverApp:
 
         self.grid = [[0 for _ in range(config.COLS)]
                      for _ in range(config.ROWS)]
-        self.app_state = AppState.DRAWING_WALLS
+        self.current_tool = 1
         self.mouse_state = MouseState.NOT_PRESSED
         self.last_cell = None
         self.key_points_placed = 0
@@ -34,30 +34,40 @@ class MazeSolverApp:
         self.handle_mouse_drag()
     
     def handle_keydown(self, event):
-        if event.key == pygame.K_RETURN:
-            if self.app_state == AppState.DRAWING_WALLS:
-                print("Переход к выбору входа/выхода")
-                self.app_state = AppState.PLACING_POINTS
-            elif self.app_state == AppState.PLACING_POINTS:
-                print("Ввод завершён")
-                self.app_state = AppState.SOLVING
-                answer = find_shortest_path(self.grid)
-                if answer:
-                    self.grid = answer
-                    self.full_redraw = True
+        if event.key == pygame.K_1:
+            self.current_tool = 1
+            print("Выбран инструмент: стены")
+        elif event.key == pygame.K_2:
+            self.current_tool = 2
+            print("Выбран инструмент: точки входа/выхода")
+        elif event.key == pygame.K_3:
+            print("Поиск решения...")
+            answer = find_shortest_path(self.grid)
+            if answer:
+                self.grid = answer
+                self.full_redraw = True
     
     def handle_mousebuttondown(self, event):
         if event.button == 1:
             self.mouse_state = MouseState.LEFT_BUTTON_PRESSED
             x, y = self.get_cell_coords(pygame.mouse.get_pos())
             
-            if self.app_state == AppState.DRAWING_WALLS:
+            if self.current_tool == 1:
                 self.grid[y][x] = 1
-            elif self.app_state == AppState.PLACING_POINTS and self.key_points_placed < 2:
+            elif self.current_tool == 2:
+                if self.key_points_placed >= 2:
+                    self.remove_previous_points()
                 self.grid[y][x] = 2
                 self.key_points_placed += 1
             
             self.last_cell = (x, y)
+    
+    def remove_previous_points(self):
+        for y in range(config.ROWS):
+            for x in range(config.COLS):
+                if self.grid[y][x] == 2:
+                    self.grid[y][x] = 0
+        self.key_points_placed = 0
     
     def handle_mousebuttonup(self, event):
         if event.button == 1:
@@ -68,7 +78,7 @@ class MazeSolverApp:
         if self.mouse_state == MouseState.LEFT_BUTTON_PRESSED:
             x, y = self.get_cell_coords(pygame.mouse.get_pos())
             if 0 <= x < config.COLS and 0 <= y < config.ROWS and (x, y) != self.last_cell:
-                if self.app_state == AppState.DRAWING_WALLS and self.grid[y][x] != 2:
+                if self.current_tool == 1 and self.grid[y][x] != 2:  # Рисуем только стены
                     self.grid[y][x] = 1
                 self.last_cell = (x, y)
     
