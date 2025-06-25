@@ -9,7 +9,7 @@ class MazeSolverApp:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode((config.WIDTH, config.HEIGHT))
-        pygame.display.set_caption("Решатель лабиринтов")
+        pygame.display.set_caption("Решатель лабиринтов: OFF")
 
         self.grid = [[0 for _ in range(config.COLS)]
                      for _ in range(config.ROWS)]
@@ -37,9 +37,11 @@ class MazeSolverApp:
         if event.key == pygame.K_RETURN:
             if not self.show_solution:
                 self.show_solution = True
+                pygame.display.set_caption("Решатель лабиринтов: ON")
             else:
                 self.delete_solution()
                 self.show_solution = False
+                pygame.display.set_caption("Решатель лабиринтов: OFF")
     
     def delete_solution(self):
         for x in range(config.COLS):
