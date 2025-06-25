@@ -17,6 +17,7 @@ class MazeSolverApp:
         self.mouse_state = MouseState.NOT_PRESSED
         self.last_cell = None
         self.key_points_placed = 0
+        self.show_solution = False
         self.clock = pygame.time.Clock()
         self.running = True
     
@@ -44,11 +45,20 @@ class MazeSolverApp:
             self.current_tool = UsedTool.ERASER
             print("Выбран инструмент: ластик")
         elif event.key == pygame.K_RETURN:
-            print("Поиск решения...")
-            answer = find_shortest_path(self.grid)
-            if answer:
-                self.grid = answer
-                self.full_redraw = True
+            if not self.show_solution:
+                answer = find_shortest_path(self.grid)
+                if answer:
+                    self.grid = answer
+                self.show_solution = True
+            else:
+                self.delete_solution()
+                self.show_solution = False
+    
+    def delete_solution(self):
+        for x in range(config.COLS):
+            for y in range(config.ROWS):
+                if self.grid[y][x] == 3:
+                    self.grid[y][x] = 0
     
     def handle_mousebuttondown(self, event):
         if event.button == 1:
