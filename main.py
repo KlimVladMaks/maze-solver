@@ -19,6 +19,7 @@ class MazeSolverApp:
         self.show_solution = False
         self.clock = pygame.time.Clock()
         self.running = True
+        self.need_redraw = True
     
     def handle_events(self):
         for event in pygame.event.get():
@@ -31,7 +32,8 @@ class MazeSolverApp:
             elif event.type == pygame.MOUSEBUTTONUP:
                 self.handle_mousebuttonup(event)
         
-        self.handle_mouse_drag()
+        if self.handle_mouse_drag():
+            self.need_redraw = True
     
     def handle_keydown(self, event):
         if event.key == pygame.K_RETURN:
@@ -42,6 +44,7 @@ class MazeSolverApp:
                 self.delete_solution()
                 self.show_solution = False
                 pygame.display.set_caption("Решатель лабиринтов: OFF")
+            self.need_redraw = True
     
     def delete_solution(self):
         for x in range(config.COLS):
@@ -53,22 +56,27 @@ class MazeSolverApp:
         if event.button == 1:
             self.mouse_state = MouseState.LEFT_BUTTON_PRESSED
             x, y = self.get_cell_coords(pygame.mouse.get_pos())
-            self.grid[y][x] = 1
+            if self.grid[y][x] != 1:
+                self.grid[y][x] = 1
+                self.need_redraw = True
         
         elif event.button == 2:
             if self.key_points_placed < 2:
                 x, y = self.get_cell_coords(pygame.mouse.get_pos())
-                self.grid[y][x] = 2
-                self.key_points_placed += 1
+                if self.grid[y][x] != 2:
+                    self.grid[y][x] = 2
+                    self.key_points_placed += 1
+                    self.need_redraw = True
         
         elif event.button == 3:
             self.mouse_state = MouseState.RIGHT_BUTTON_PRESSED
             x, y = self.get_cell_coords(pygame.mouse.get_pos())
-            if self.grid[y][x] != 3:
+            if self.grid[y][x] != 0 and self.grid[y][x] != 3:
                 if self.grid[y][x] == 2:
-                        self.key_points_placed -= 1
+                    self.key_points_placed -= 1
                 self.grid[y][x] = 0
                 self.last_cell = (x, y)
+                self.need_redraw = True
     
     def handle_mousebuttonup(self, event):
         if event.button == 1 or event.button == 3:
@@ -76,36 +84,46 @@ class MazeSolverApp:
             self.last_cell = None
     
     def handle_mouse_drag(self):
+        changed = False
         if self.mouse_state == MouseState.LEFT_BUTTON_PRESSED:
             x, y = self.get_cell_coords(pygame.mouse.get_pos())
             if 0 <= x < config.COLS and 0 <= y < config.ROWS and (x, y) != self.last_cell:
-                self.grid[y][x] = 1
+                if self.grid[y][x] != 1:
+                    self.grid[y][x] = 1
+                    changed = True
                 self.last_cell = (x, y)
         elif self.mouse_state == MouseState.RIGHT_BUTTON_PRESSED:
             x, y = self.get_cell_coords(pygame.mouse.get_pos())
             if 0 <= x < config.COLS and 0 <= y < config.ROWS and (x, y) != self.last_cell:
-                if self.grid[y][x] != 3:
+                if self.grid[y][x] != 0 and self.grid[y][x] != 3:
                     if self.grid[y][x] == 2:
                         self.key_points_placed -= 1
                     self.grid[y][x] = 0
-                    self.last_cell = (x, y)
+                    changed = True
+                self.last_cell = (x, y)
+        return changed
     
     def get_cell_coords(self, pos):
         return pos[0] // config.CELL_SIZE, pos[1] // config.CELL_SIZE
     
     def render(self):
+        if not self.need_redraw:
+            return
+        
+        if self.show_solution:
+            self.delete_solution()
+            if self.key_points_placed == 2:
+                answer = find_shortest_path(self.grid)
+                if answer:
+                    self.grid = answer
+        
         self.screen.fill(Colors.BLACK)
-        if self.show_solution and self.key_points_placed == 2:
-            self.delete_solution()
-            answer = find_shortest_path(self.grid)
-            if answer:
-                self.grid = answer
-        elif self.key_points_placed < 2:
-            self.delete_solution()
         for y in range(config.ROWS):
             for x in range(config.COLS):
                 draw_cell(self.screen, self.grid, x, y)
+        
         pygame.display.flip()
+        self.need_redraw = False
     
     def run(self):
         while self.running:
