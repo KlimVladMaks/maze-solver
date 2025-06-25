@@ -88,7 +88,7 @@ class MazeSolverApp:
                     if self.grid[y][x] == 2:
                         self.key_points_placed -= 1
                     self.grid[y][x] = 0
-            self.last_cell = (x, y)
+                    self.last_cell = (x, y)
     
     def get_cell_coords(self, pos):
         return pos[0] // config.CELL_SIZE, pos[1] // config.CELL_SIZE
