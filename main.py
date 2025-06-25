@@ -46,9 +46,6 @@ class MazeSolverApp:
             print("Выбран инструмент: ластик")
         elif event.key == pygame.K_RETURN:
             if not self.show_solution:
-                answer = find_shortest_path(self.grid)
-                if answer:
-                    self.grid = answer
                 self.show_solution = True
             else:
                 self.delete_solution()
@@ -74,10 +71,11 @@ class MazeSolverApp:
         elif event.button == 3:
             self.mouse_state = MouseState.RIGHT_BUTTON_PRESSED
             x, y = self.get_cell_coords(pygame.mouse.get_pos())
-            if self.grid[y][x] == 2:
-                    self.key_points_placed -= 1
-            self.grid[y][x] = 0
-            self.last_cell = (x, y)
+            if self.grid[y][x] != 3:
+                if self.grid[y][x] == 2:
+                        self.key_points_placed -= 1
+                self.grid[y][x] = 0
+                self.last_cell = (x, y)
     
     def handle_mousebuttonup(self, event):
         if event.button == 1 or event.button == 3:
@@ -105,6 +103,13 @@ class MazeSolverApp:
     
     def render(self):
         self.screen.fill(Colors.BLACK)
+        if self.show_solution and self.key_points_placed == 2:
+            self.delete_solution()
+            answer = find_shortest_path(self.grid)
+            if answer:
+                self.grid = answer
+        elif self.key_points_placed < 2:
+            self.delete_solution()
         for y in range(config.ROWS):
             for x in range(config.COLS):
                 draw_cell(self.screen, self.grid, x, y)
