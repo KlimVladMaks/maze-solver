@@ -1,7 +1,7 @@
 import pygame
 from find_shortest_path import find_shortest_path
 from config import config
-from constants import AppState, MouseState, Colors
+from constants import UsedTool, MouseState, Colors
 from draw_cell import draw_cell
 
 
@@ -13,7 +13,7 @@ class MazeSolverApp:
 
         self.grid = [[0 for _ in range(config.COLS)]
                      for _ in range(config.ROWS)]
-        self.current_tool = 1
+        self.current_tool = UsedTool.WALLS
         self.mouse_state = MouseState.NOT_PRESSED
         self.last_cell = None
         self.key_points_placed = 0
@@ -35,12 +35,15 @@ class MazeSolverApp:
     
     def handle_keydown(self, event):
         if event.key == pygame.K_1:
-            self.current_tool = 1
+            self.current_tool = UsedTool.WALLS
             print("Выбран инструмент: стены")
         elif event.key == pygame.K_2:
-            self.current_tool = 2
+            self.current_tool = UsedTool.POINTS
             print("Выбран инструмент: точки входа/выхода")
         elif event.key == pygame.K_3:
+            self.current_tool = UsedTool.ERASER
+            print("Выбран инструмент: ластик")
+        elif event.key == pygame.K_RETURN:
             print("Поиск решения...")
             answer = find_shortest_path(self.grid)
             if answer:
@@ -52,16 +55,22 @@ class MazeSolverApp:
             self.mouse_state = MouseState.LEFT_BUTTON_PRESSED
             x, y = self.get_cell_coords(pygame.mouse.get_pos())
             
-            if self.current_tool == 1:
+            if self.current_tool == UsedTool.WALLS:
                 self.grid[y][x] = 1
-            elif self.current_tool == 2 and self.key_points_placed < 2:
+            elif self.current_tool == UsedTool.POINTS and self.key_points_placed < 2:
                 self.grid[y][x] = 2
                 self.key_points_placed += 1
-            
+        
+        elif event.button == 3:
+            self.mouse_state = MouseState.RIGHT_BUTTON_PRESSED
+            x, y = self.get_cell_coords(pygame.mouse.get_pos())
+            if self.grid[y][x] == 2:
+                    self.key_points_placed -= 1
+            self.grid[y][x] = 0
             self.last_cell = (x, y)
     
     def handle_mousebuttonup(self, event):
-        if event.button == 1:
+        if event.button == 1 or event.button == 3:
             self.mouse_state = MouseState.NOT_PRESSED
             self.last_cell = None
     
@@ -69,9 +78,17 @@ class MazeSolverApp:
         if self.mouse_state == MouseState.LEFT_BUTTON_PRESSED:
             x, y = self.get_cell_coords(pygame.mouse.get_pos())
             if 0 <= x < config.COLS and 0 <= y < config.ROWS and (x, y) != self.last_cell:
-                if self.current_tool == 1 and self.grid[y][x] != 2:  # Рисуем только стены
+                if self.current_tool == UsedTool.WALLS:
                     self.grid[y][x] = 1
                 self.last_cell = (x, y)
+        elif self.mouse_state == MouseState.RIGHT_BUTTON_PRESSED:
+            x, y = self.get_cell_coords(pygame.mouse.get_pos())
+            if 0 <= x < config.COLS and 0 <= y < config.ROWS and (x, y) != self.last_cell:
+                if self.grid[y][x] != 3:
+                    if self.grid[y][x] == 2:
+                        self.key_points_placed -= 1
+                    self.grid[y][x] = 0
+            self.last_cell = (x, y)
     
     def get_cell_coords(self, pos):
         return pos[0] // config.CELL_SIZE, pos[1] // config.CELL_SIZE

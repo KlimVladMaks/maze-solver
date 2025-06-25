@@ -1,10 +1,9 @@
 from enum import Enum, auto
 import pygame
 
-class AppState(Enum):
-    DRAWING_WALLS = auto()
-    PLACING_POINTS = auto()
-    SOLVING = auto()
+class UsedTool(Enum):
+    WALLS = auto()
+    POINTS = auto()
 
 class MouseState(Enum):
     LEFT_BUTTON_PRESSED = auto()
